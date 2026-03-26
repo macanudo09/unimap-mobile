@@ -529,7 +529,7 @@
         }
 
         .cl-items {
-            padding: 10px 16px 0;
+            padding: 10px 16px 16px;
             display: flex;
             flex-direction: column;
             gap: 6px;
@@ -870,11 +870,8 @@
 
         <!-- 데이터 있을 때 -->
         <div id="homeWithData" style="display:none;">
-            <div class="home-top">
-                <div class="home-save-info" id="homeSaveInfo">저장 정보 없음</div>
-            </div>
 
-            <div class="summary-cards">
+            <div class="summary-cards" style="margin-top:16px;">
                 <div class="summary-card total">
                     <div class="sc-num" id="statTotal">0</div>
                     <div class="sc-label">전체 세대</div>
@@ -1130,12 +1127,14 @@ const APP = {
                 export:     '결과 내보내기',
             };
             if (screenId === 'home') {
-                const siteName = APP.state.mobileData?.siteName || '';
+                const lastSaved = localStorage.getItem(APP.LS.LAST_SAVED);
+                const savedText = lastSaved ? APP.Util.formatTime(lastSaved) : '';
                 header.innerHTML = `
                     <div class="header-logo">
                         <span class="logo-main">Unimap Mobile</span>
-                        <span class="logo-sub">${siteName || 'STATION COMPANION'}</span>
+                        <span class="logo-sub">STATION COMPANION</span>
                     </div>
+                    ${savedText ? `<span style="font-size:11px;color:var(--accent);margin-right:4px;">${savedText}</span>` : ''}
                     <button class="header-action" onclick="APP.UI.openLoadSheet()" title="데이터 불러오기">📂</button>
                 `;
             } else {
@@ -1170,8 +1169,8 @@ const APP = {
             const data = APP.state.mobileData;
             if (!data) return;
             const lastSaved = localStorage.getItem(APP.LS.LAST_SAVED);
-            document.getElementById('homeSaveInfo').textContent =
-                lastSaved ? `마지막 저장: ${APP.Util.formatTime(lastSaved)}` : '저장 정보 없음';
+            // 헤더 저장 시각 갱신
+            APP.UI.renderHeader('home');
 
             // contractByUnit 기준 집계 (옵션 없는 세대 제외)
             const contractUnits = Object.keys(data.contractByUnit || {});
@@ -1919,12 +1918,11 @@ APP.UI.showToast = function(msg) {
     APP.UI.renderHome();
     // 물리 뒤로가기 처리
     window.addEventListener('popstate', e => {
-        const screen = e.state?.screen;
-        if (screen && screen !== 'home') {
+        if (APP.state.currentScreen !== 'home') {
             // 하위 화면 → 상위로
             APP.UI.back();
         } else {
-            // 홈이거나 스택 없음 → 스택 재주입해서 앱 유지
+            // 홈에서 뒤로가기 → 스택 재주입해서 앱 유지
             history.pushState({ screen: 'home' }, '', '');
         }
     });
