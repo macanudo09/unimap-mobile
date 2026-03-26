@@ -1134,8 +1134,12 @@ const APP = {
                         <span class="logo-main">Unimap Mobile</span>
                         <span class="logo-sub">STATION COMPANION</span>
                     </div>
-                    ${savedText ? `<span style="font-size:11px;color:var(--accent);margin-right:4px;">${savedText}</span>` : ''}
                     <button class="header-action" onclick="APP.UI.openLoadSheet()" title="데이터 불러오기">📂</button>
+                    ${savedText ? `
+                    <div style="margin-left:auto;text-align:right;line-height:1.4;">
+                        <div style="font-size:10px;color:rgba(255,255,255,0.55);">마지막 저장</div>
+                        <div style="font-size:11px;color:var(--accent);font-weight:700;">${savedText}</div>
+                    </div>` : ''}
                 `;
             } else {
                 header.innerHTML = `
