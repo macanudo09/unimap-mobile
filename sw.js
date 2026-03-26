@@ -3,7 +3,7 @@
 //  버전 변경 시 CACHE_VERSION 숫자를 올리면 강제 캐시 초기화
 // ============================================================
 
-const CACHE_VERSION = 'unimap-mobile-v1';
+const CACHE_VERSION = 'unimap-mobile-v2';
 
 const CACHE_FILES = [
     './',
