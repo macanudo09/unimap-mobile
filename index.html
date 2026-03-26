@@ -1687,7 +1687,7 @@ const APP = {
                 ? `result_incomplete_${ts}.txt`
                 : `result_${ts}.txt`;
 
-            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'text/plain' });
             const file = new File([blob], filename, { type: 'application/json' });
 
             if (navigator.share && navigator.canShare?.({ files: [file] })) {
