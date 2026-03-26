@@ -1,0 +1,1925 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Unimap Mobile">
+    <meta name="theme-color" content="#1e2952">
+    <title>Unimap Mobile</title>
+    <!-- PWA manifest -->
+    <link rel="manifest" href="manifest.json">
+    <style>
+        /* ===== RESET & BASE ===== */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --primary:       #1e2952;
+            --primary-light: #2d3d7a;
+            --accent:        #f5a623;
+            --accent-dim:    #fde68a;
+            --bg:            #f4f5f9;
+            --surface:       #ffffff;
+            --surface2:      #f0f2f8;
+            --border:        #dde1ee;
+            --text:          #1a1f36;
+            --text-sub:      #5a6282;
+            --text-muted:    #9aa1bc;
+            --done:          #10b981;
+            --done-bg:       #ecfdf5;
+            --danger:        #ef4444;
+            --radius:        12px;
+            --radius-sm:     8px;
+            --shadow:        0 2px 12px rgba(30,41,82,0.10);
+            --shadow-lg:     0 8px 32px rgba(30,41,82,0.16);
+            --header-h:      56px;
+            --bottom-h:      64px;
+            --font:          'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+        }
+
+        html, body {
+            height: 100%;
+            background: var(--bg);
+            font-family: var(--font);
+            font-size: 16px;
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+            overscroll-behavior: none;
+        }
+
+        /* ===== APP SHELL ===== */
+        #app {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100%;
+            position: relative;
+            background: var(--bg);
+        }
+
+        /* ===== HEADER ===== */
+        .app-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            height: var(--header-h);
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+        }
+
+        .header-back {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: rgba(255,255,255,0.12);
+            border-radius: 50%;
+            color: #fff;
+            font-size: 18px;
+            cursor: pointer;
+            flex-shrink: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .header-back:active { background: rgba(255,255,255,0.22); }
+
+        .header-title {
+            flex: 1;
+            color: #fff;
+            font-size: 17px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .header-logo {
+            display: flex;
+            flex-direction: column;
+            line-height: 1;
+        }
+        .header-logo .logo-main {
+            font-size: 15px;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -0.5px;
+        }
+        .header-logo .logo-sub {
+            font-size: 10px;
+            color: var(--accent);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+
+        .header-action {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: transparent;
+            color: rgba(255,255,255,0.8);
+            font-size: 20px;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .header-action:active { color: #fff; }
+
+        /* ===== SCREEN ===== */
+        .screen {
+            display: none;
+            min-height: calc(100vh - var(--header-h));
+            padding-bottom: 24px;
+            animation: fadeIn 0.18s ease-out;
+        }
+        .screen.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== COMMON COMPONENTS ===== */
+
+        /* 섹션 */
+        .section {
+            margin: 16px 16px 0;
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 18px 16px;
+            box-shadow: var(--shadow);
+        }
+        .section-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        /* 카드 */
+        .card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        /* 버튼 */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            height: 48px;
+            padding: 0 20px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-family: var(--font);
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            transition: opacity 0.1s, transform 0.1s;
+        }
+        .btn:active { opacity: 0.82; transform: scale(0.97); }
+        .btn-primary  { background: var(--primary); color: #fff; }
+        .btn-accent   { background: var(--accent); color: var(--primary); }
+        .btn-ghost    { background: var(--surface2); color: var(--text); }
+        .btn-danger   { background: #fef2f2; color: var(--danger); }
+        .btn-block    { width: 100%; }
+
+        /* 배지 */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 9px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .badge-done    { background: var(--done-bg);  color: var(--done); }
+        .badge-pending { background: var(--surface2); color: var(--text-sub); }
+        .badge-accent  { background: #fff8e6;         color: #b45309; }
+
+        /* 구분선 */
+        .divider { height: 1px; background: var(--border); margin: 0 16px; }
+
+        /* 빈 상태 */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 24px;
+            text-align: center;
+            gap: 12px;
+        }
+        .empty-state .empty-icon { font-size: 48px; opacity: 0.4; }
+        .empty-state .empty-title { font-size: 17px; font-weight: 700; color: var(--text); }
+        .empty-state .empty-desc  { font-size: 14px; color: var(--text-sub); line-height: 1.6; }
+
+        /* 토스트 */
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #1a1f36;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 12px 22px;
+            border-radius: 999px;
+            box-shadow: var(--shadow-lg);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s, transform 0.2s;
+            white-space: nowrap;
+            z-index: 9999;
+            max-width: calc(100% - 32px);
+        }
+        #toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ===== 홈 화면 ===== */
+        .home-top {
+            background: var(--primary);
+            padding: 20px 16px 28px;
+            margin-bottom: -16px;
+        }
+        .home-site-name {
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 4px;
+        }
+        .home-greeting {
+            font-size: 20px;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -0.5px;
+        }
+        .home-save-info {
+            font-size: 12px;
+            color: var(--accent);
+            margin-top: 6px;
+        }
+
+        /* 요약 카드 3개 */
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 16px 16px 0;
+        }
+        .summary-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 14px 10px;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+        .summary-card .sc-num {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            line-height: 1;
+        }
+        .summary-card .sc-label {
+            font-size: 11px;
+            color: var(--text-sub);
+            margin-top: 4px;
+            font-weight: 600;
+        }
+        .summary-card.total .sc-num  { color: var(--primary); }
+        .summary-card.done  .sc-num  { color: var(--done); }
+        .summary-card.pend  .sc-num  { color: var(--danger); }
+
+        /* 홈 메뉴 */
+        .home-menu {
+            margin: 16px 16px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .menu-item {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            border: none;
+            width: 100%;
+            text-align: left;
+        }
+        .menu-item:active { background: var(--surface2); }
+        .menu-item .mi-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+        .menu-item .mi-text { flex: 1; }
+        .menu-item .mi-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .menu-item .mi-desc {
+            font-size: 12px;
+            color: var(--text-sub);
+            margin-top: 2px;
+        }
+        .menu-item .mi-arrow {
+            font-size: 16px;
+            color: var(--text-muted);
+        }
+        .mi-icon.blue   { background: #e8eeff; }
+        .mi-icon.green  { background: #e6faf4; }
+        .mi-icon.orange { background: #fff8e6; }
+
+        /* 미로드 안내 */
+        .no-data-banner {
+            margin: 16px 16px 0;
+            background: #fff8e6;
+            border: 1.5px solid var(--accent-dim);
+            border-radius: var(--radius);
+            padding: 20px 16px;
+            text-align: center;
+        }
+        .no-data-banner .ndb-icon  { font-size: 36px; margin-bottom: 10px; }
+        .no-data-banner .ndb-title { font-size: 15px; font-weight: 700; color: var(--primary); margin-bottom: 6px; }
+        .no-data-banner .ndb-desc  { font-size: 13px; color: var(--text-sub); margin-bottom: 14px; line-height: 1.6; }
+
+        /* ===== 세대 조회 화면 ===== */
+        .search-bar-wrap {
+            padding: 12px 16px;
+            background: var(--surface);
+            position: sticky;
+            top: var(--header-h);
+            z-index: 50;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
+        .search-input {
+            width: 100%;
+            height: 44px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 0 14px 0 40px;
+            font-family: var(--font);
+            font-size: 15px;
+            background: var(--surface2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%239aa1bc' stroke-width='2' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") no-repeat 13px center;
+            outline: none;
+            color: var(--text);
+        }
+        .search-input:focus { border-color: var(--primary); background-color: #fff; }
+
+        .filter-chips {
+            display: flex;
+            gap: 7px;
+            padding: 10px 16px 0;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .filter-chips::-webkit-scrollbar { display: none; }
+        .chip {
+            flex-shrink: 0;
+            height: 32px;
+            padding: 0 13px;
+            border-radius: 999px;
+            font-family: var(--font);
+            font-size: 13px;
+            font-weight: 600;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--text-sub);
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .chip.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+        }
+
+        .unit-list {
+            padding: 10px 16px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .unit-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            border: none;
+            width: 100%;
+            text-align: left;
+        }
+        .unit-card:active { background: var(--surface2); }
+        .unit-card.is-done { border-left: 3px solid var(--done); }
+        .unit-card.is-pending { border-left: 3px solid var(--border); }
+        .unit-card .uc-info { flex: 1; }
+        .unit-card .uc-dong-ho {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .unit-card .uc-type {
+            font-size: 12px;
+            color: var(--text-sub);
+            margin-top: 2px;
+        }
+        .unit-card .uc-progress {
+            text-align: right;
+        }
+        .unit-card .uc-prog-num {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .unit-card .uc-prog-bar-wrap {
+            width: 60px;
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-top: 4px;
+            overflow: hidden;
+        }
+        .unit-card .uc-prog-bar {
+            height: 100%;
+            background: var(--done);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* ===== 체크리스트 화면 ===== */
+        .cl-header-card {
+            margin: 16px 16px 0;
+            background: var(--primary);
+            border-radius: var(--radius);
+            padding: 16px;
+            box-shadow: var(--shadow-lg);
+        }
+        .cl-unit-info {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .cl-dong-ho {
+            font-size: 20px;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -0.5px;
+        }
+        .cl-type {
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.6);
+        }
+        .cl-manager {
+            font-size: 12px;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+        .cl-prog-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 6px;
+        }
+        .cl-prog-bar-wrap {
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .cl-prog-bar {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .cl-items {
+            padding: 10px 16px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .cl-item {
+            background: var(--surface);
+            border-radius: var(--radius-sm);
+            box-shadow: 0 1px 4px rgba(30,41,82,0.07);
+            overflow: hidden;
+        }
+        .cl-item.is-checked { background: var(--done-bg); }
+
+        .cl-item-row {
+            display: flex;
+            align-items: center;
+            padding: 13px 14px;
+            gap: 12px;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .cl-checkbox {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 14px;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .cl-item.is-checked .cl-checkbox {
+            background: var(--done);
+            border-color: var(--done);
+            color: #fff;
+        }
+        .cl-item-name {
+            flex: 1;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            line-height: 1.4;
+        }
+        .cl-item.is-checked .cl-item-name {
+            text-decoration: line-through;
+            color: var(--text-sub);
+        }
+        .cl-item-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+            font-weight: 400;
+        }
+        .cl-memo-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: transparent;
+            font-size: 16px;
+            cursor: pointer;
+            flex-shrink: 0;
+            -webkit-tap-highlight-color: transparent;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .cl-memo-btn:active { background: var(--surface2); }
+        .cl-memo-btn.has-memo { color: #f59e0b; }
+        .cl-memo-btn:not(.has-memo) { color: var(--text-muted); }
+
+        .cl-memo-area {
+            display: none;
+            padding: 0 14px 12px;
+        }
+        .cl-memo-area.open { display: block; }
+        .cl-memo-input {
+            width: 100%;
+            border: 1.5px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-family: var(--font);
+            font-size: 13px;
+            color: var(--text);
+            background: var(--bg);
+            resize: none;
+            outline: none;
+            min-height: 52px;
+        }
+        .cl-memo-input:focus { border-color: var(--primary); }
+
+        .cl-bottom-bar {
+            position: sticky;
+            bottom: 0;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            padding: 12px 16px;
+            display: flex;
+            gap: 10px;
+        }
+
+        /* ===== 내보내기 화면 ===== */
+        .export-summary {
+            margin: 16px 16px 0;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        .export-stat {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 16px 10px;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+        .export-stat .es-num {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+        .export-stat .es-label {
+            font-size: 11px;
+            color: var(--text-sub);
+            margin-top: 4px;
+            font-weight: 600;
+        }
+        .export-stat.total .es-num  { color: var(--primary); }
+        .export-stat.done  .es-num  { color: var(--done); }
+        .export-stat.pend  .es-num  { color: var(--danger); }
+
+        .export-options {
+            margin: 16px 16px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .export-btn-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 18px 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            border: none;
+            width: 100%;
+            text-align: left;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .export-btn-card:active { background: var(--surface2); }
+        .export-btn-card .ebc-icon {
+            font-size: 28px;
+        }
+        .export-btn-card .ebc-text { flex: 1; }
+        .export-btn-card .ebc-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .export-btn-card .ebc-desc {
+            font-size: 12px;
+            color: var(--text-sub);
+            margin-top: 3px;
+        }
+
+        /* ===== 데이터 불러오기 (모달형) ===== */
+        .load-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 500;
+            align-items: flex-end;
+            justify-content: center;
+        }
+        .load-overlay.open {
+            display: flex;
+            animation: overlayIn 0.2s ease-out;
+        }
+        @keyframes overlayIn {
+            from { background: rgba(0,0,0,0); }
+            to   { background: rgba(0,0,0,0.5); }
+        }
+        .load-sheet {
+            width: 100%;
+            max-width: 480px;
+            background: var(--surface);
+            border-radius: var(--radius) var(--radius) 0 0;
+            padding: 24px 16px 40px;
+            animation: sheetUp 0.25s cubic-bezier(0.34,1.1,0.64,1);
+        }
+        @keyframes sheetUp {
+            from { transform: translateY(100%); }
+            to   { transform: translateY(0); }
+        }
+        .load-sheet-title {
+            font-size: 17px;
+            font-weight: 800;
+            margin-bottom: 6px;
+            color: var(--text);
+        }
+        .load-sheet-desc {
+            font-size: 13px;
+            color: var(--text-sub);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        .load-file-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            height: 52px;
+            background: var(--primary);
+            color: #fff;
+            border-radius: var(--radius-sm);
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+        .load-file-label:active { opacity: 0.85; }
+        .load-cancel {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 44px;
+            background: transparent;
+            border: none;
+            font-family: var(--font);
+            font-size: 15px;
+            color: var(--text-sub);
+            cursor: pointer;
+            width: 100%;
+        }
+
+        /* ===== PWA 홈 화면 추가 안내 배너 ===== */
+        #pwaInstallBanner {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background: var(--primary);
+            color: #fff;
+            padding: 14px 16px 20px;
+            z-index: 9000;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.25);
+            animation: sheetUp 0.3s ease-out;
+        }
+        #pwaInstallBanner.show { display: block; }
+        .pwa-banner-title {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .pwa-banner-desc {
+            font-size: 12px;
+            color: rgba(255,255,255,0.75);
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+        .pwa-banner-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .pwa-banner-btn {
+            flex: 1;
+            height: 40px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-family: var(--font);
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .pwa-banner-btn.primary { background: var(--accent); color: var(--primary); }
+        .pwa-banner-btn.ghost   { background: rgba(255,255,255,0.15); color: #fff; }
+
+        /* ===== SW 업데이트 알림 ===== */
+        #swUpdateBar {
+            display: none;
+            position: fixed;
+            top: var(--header-h);
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background: var(--accent);
+            color: var(--primary);
+            font-size: 13px;
+            font-weight: 700;
+            padding: 10px 16px;
+            z-index: 8000;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+        }
+        #swUpdateBar.show { display: flex; }
+        @supports (padding-bottom: env(safe-area-inset-bottom)) {
+            .cl-bottom-bar,
+            .load-sheet {
+                padding-bottom: calc(12px + env(safe-area-inset-bottom));
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <!-- ===== HEADER ===== -->
+    <header class="app-header" id="appHeader">
+        <!-- JS로 동적 렌더 -->
+    </header>
+
+    <!-- ===== SCREEN: 홈 ===== -->
+    <div id="screen-home" class="screen active">
+
+        <!-- 데이터 없을 때 -->
+        <div id="homeNoData" style="display:none;">
+            <div class="no-data-banner" style="margin-top:16px;">
+                <div class="ndb-icon">📂</div>
+                <div class="ndb-title">데이터를 불러오세요</div>
+                <div class="ndb-desc">
+                    Unimap Station에서 생성한<br>
+                    <strong>mobile.json</strong> 파일을 불러오면<br>
+                    세대 조회 및 체크리스트를 사용할 수 있습니다.
+                </div>
+                <button class="btn btn-primary btn-block" onclick="APP.UI.openLoadSheet()">
+                    📂 mobile.json 불러오기
+                </button>
+            </div>
+        </div>
+
+        <!-- 데이터 있을 때 -->
+        <div id="homeWithData" style="display:none;">
+            <div class="home-top">
+                <div class="home-site-name" id="homeSiteName">○○아파트</div>
+                <div class="home-greeting">안녕하세요 👋</div>
+                <div class="home-save-info" id="homeSaveInfo">저장 정보 없음</div>
+            </div>
+
+            <div class="summary-cards">
+                <div class="summary-card total">
+                    <div class="sc-num" id="statTotal">0</div>
+                    <div class="sc-label">전체 세대</div>
+                </div>
+                <div class="summary-card done">
+                    <div class="sc-num" id="statDone">0</div>
+                    <div class="sc-label">완료</div>
+                </div>
+                <div class="summary-card pend">
+                    <div class="sc-num" id="statPend">0</div>
+                    <div class="sc-label">미완료</div>
+                </div>
+            </div>
+            <div id="homeMissingOpts" style="display:none;margin:8px 16px 0;font-size:12px;color:var(--text-muted);text-align:right;">
+                미옵션 0세대 제외
+            </div>
+
+            <div class="home-menu">
+                <button class="menu-item" onclick="APP.UI.showScreen('search')">
+                    <div class="mi-icon blue">🔍</div>
+                    <div class="mi-text">
+                        <div class="mi-title">세대 조회</div>
+                        <div class="mi-desc">동·호수 검색 및 체크리스트 진입</div>
+                    </div>
+                    <span class="mi-arrow">›</span>
+                </button>
+                <button class="menu-item" onclick="APP.UI.showScreen('export')">
+                    <div class="mi-icon green">📤</div>
+                    <div class="mi-text">
+                        <div class="mi-title">결과 내보내기</div>
+                        <div class="mi-desc">result.json 생성 및 공유</div>
+                    </div>
+                    <span class="mi-arrow">›</span>
+                </button>
+                <button class="menu-item" onclick="APP.UI.openLoadSheet()">
+                    <div class="mi-icon orange">🔄</div>
+                    <div class="mi-text">
+                        <div class="mi-title">데이터 다시 불러오기</div>
+                        <div class="mi-desc">mobile.json 재로드</div>
+                    </div>
+                    <span class="mi-arrow">›</span>
+                </button>
+            </div>
+        </div>
+
+    </div><!-- /screen-home -->
+
+    <!-- ===== SCREEN: 세대 조회 ===== -->
+    <div id="screen-search" class="screen">
+        <div class="search-bar-wrap">
+            <input type="search" class="search-input" id="searchInput"
+                placeholder="동 또는 호수 입력 (예: 101, 1203)"
+                autocomplete="off" autocorrect="off" spellcheck="false"
+                oninput="APP.Search.filter()">
+        </div>
+        <div class="filter-chips" id="filterChips">
+            <!-- JS 렌더 -->
+        </div>
+        <div class="unit-list" id="unitList">
+            <!-- JS 렌더 -->
+        </div>
+    </div><!-- /screen-search -->
+
+    <!-- ===== SCREEN: 체크리스트 ===== -->
+    <div id="screen-checklist" class="screen">
+        <div class="cl-header-card" id="clHeaderCard">
+            <div class="cl-unit-info">
+                <span class="cl-dong-ho" id="clDongHo">101동 1203호</span>
+                <span class="cl-type" id="clType">84A</span>
+            </div>
+            <div class="cl-manager" id="clManager"></div>
+            <div class="cl-prog-label">
+                <span id="clProgText">0 / 0 완료</span>
+                <span id="clProgPct">0%</span>
+            </div>
+            <div class="cl-prog-bar-wrap">
+                <div class="cl-prog-bar" id="clProgBar" style="width:0%"></div>
+            </div>
+        </div>
+
+        <div class="cl-items" id="clItems">
+            <!-- JS 렌더 -->
+        </div>
+
+        <div class="cl-bottom-bar">
+            <button class="btn btn-danger" style="flex:1;" onclick="APP.Checklist.resetUnit()">
+                🗑 초기화
+            </button>
+            <button class="btn btn-primary" style="flex:2;" onclick="APP.Checklist.copyKakaoText()">
+                💬 카톡 텍스트 복사
+            </button>
+        </div>
+    </div><!-- /screen-checklist -->
+
+    <!-- ===== SCREEN: 내보내기 ===== -->
+    <div id="screen-export" class="screen">
+        <div class="export-summary">
+            <div class="export-stat total">
+                <div class="es-num" id="expTotal">0</div>
+                <div class="es-label">전체 세대</div>
+            </div>
+            <div class="export-stat done">
+                <div class="es-num" id="expDone">0</div>
+                <div class="es-label">완료</div>
+            </div>
+            <div class="export-stat pend">
+                <div class="es-num" id="expPend">0</div>
+                <div class="es-label">미완료</div>
+            </div>
+        </div>
+
+        <div class="export-options">
+            <button class="export-btn-card" onclick="APP.Export.exportResult(false)">
+                <span class="ebc-icon">📋</span>
+                <div class="ebc-text">
+                    <div class="ebc-title">전체 결과 내보내기</div>
+                    <div class="ebc-desc">모든 세대 포함 · result_YYYYMMDD_HHMM.json</div>
+                </div>
+            </button>
+            <button class="export-btn-card" onclick="APP.Export.exportResult(true)">
+                <span class="ebc-icon">⬜</span>
+                <div class="ebc-text">
+                    <div class="ebc-title">미완료 세대만 내보내기</div>
+                    <div class="ebc-desc">재점검용 · result_incomplete_YYYYMMDD_HHMM.json</div>
+                </div>
+            </button>
+        </div>
+
+        <div class="section" style="margin-top:16px;">
+            <div class="section-label">내보내기 안내</div>
+            <p style="font-size:13px;color:var(--text-sub);line-height:1.7;">
+                · 파일은 카카오톡, 메일, 에어드롭 등으로 공유할 수 있습니다.<br>
+                · 공유 후 Unimap Station에서 불러와 엑셀 리포트를 생성하세요.<br>
+                · 여러 담당자가 나눠 점검한 경우 Station에서 순차 업로드하면 자동 병합됩니다.
+            </p>
+        </div>
+    </div><!-- /screen-export -->
+
+</div><!-- /app -->
+
+<!-- ===== 데이터 불러오기 시트 ===== -->
+<div class="load-overlay" id="loadOverlay" onclick="APP.UI.closeLoadSheet(event)">
+    <div class="load-sheet">
+        <div class="load-sheet-title">📂 mobile.json 불러오기</div>
+        <div class="load-sheet-desc">
+            Unimap Station에서 생성한 <strong>mobile.json</strong> 파일을 선택하세요.<br>
+            기존 체크 데이터 처리 방식을 선택할 수 있습니다.
+        </div>
+        <label class="load-file-label">
+            📂 파일 선택
+            <input type="file" id="mobileJsonInput" accept=".json" style="display:none;"
+                onchange="APP.Data.loadMobileJson(this)">
+        </label>
+        <button class="load-cancel" onclick="APP.UI.closeLoadSheet()">취소</button>
+    </div>
+</div>
+
+<!-- ===== 병합 선택 다이얼로그 ===== -->
+<div class="load-overlay" id="mergeOverlay">
+    <div class="load-sheet">
+        <div class="load-sheet-title">⚠️ 기존 데이터가 있습니다</div>
+        <div class="load-sheet-desc">
+            이미 저장된 체크 데이터가 있습니다.<br>
+            어떻게 처리할까요?
+        </div>
+        <button class="btn btn-primary btn-block" style="margin-bottom:10px;"
+            onclick="APP.Data.confirmLoad('keep')">
+            ✅ 기존 체크 유지 + 신규 세대 추가 (권장)
+        </button>
+        <button class="btn btn-ghost btn-block" style="margin-bottom:10px;"
+            onclick="APP.Data.confirmLoad('reset')">
+            🗑 전체 초기화 후 새로 시작
+        </button>
+        <button class="load-cancel" onclick="APP.UI.closeMergeOverlay()">취소</button>
+    </div>
+</div>
+
+<!-- ===== 토스트 ===== -->
+<div id="toast"></div>
+
+<!-- ===== SW 업데이트 알림 바 ===== -->
+<div id="swUpdateBar">
+    <span>🆕 새 버전이 있습니다</span>
+    <button onclick="location.reload()" style="border:none;background:var(--primary);color:#fff;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;">새로고침</button>
+</div>
+
+<!-- ===== 홈 화면 추가 안내 배너 ===== -->
+<div id="pwaInstallBanner">
+    <div class="pwa-banner-title">📲 홈 화면에 추가하면 앱처럼 사용할 수 있어요</div>
+    <div class="pwa-banner-desc" id="pwaInstallDesc">
+        <!-- JS에서 iOS/Android 분기 -->
+    </div>
+    <div class="pwa-banner-actions">
+        <button class="pwa-banner-btn primary" id="pwaInstallBtn">설치하기</button>
+        <button class="pwa-banner-btn ghost" onclick="APP.PWA.dismissBanner()">나중에</button>
+    </div>
+</div>
+
+<script>
+// ============================================================
+//  APP — Unimap Mobile (STEP 2: 기본 구조)
+//  STEP 3~7에서 각 모듈 내용 채워짐
+// ============================================================
+
+const APP = {
+
+    // ── 전역 상태 (STEP 3~7에서 점진 확장) ──
+    state: {
+        currentScreen: 'home',
+        mobileData:    null,     // mobile.json 파싱 결과
+        currentUnitKey: null,    // 체크리스트 화면 대상 unitKey
+        pendingJsonData: null,   // 병합 다이얼로그 대기 중 데이터
+        filterChip: 'all',       // 조회 화면 필터 (all / done / pending)
+        filterDong: '',          // 동 필터
+    },
+
+    // ── localStorage 키 상수 ──
+    LS: {
+        MOBILE_DATA:  'unimap_mobile_data',
+        META:         'unimap_meta',
+        LAST_SAVED:   'unimap_last_saved',
+        CHECKLIST:    unitKey => `unimap_checklist_${unitKey}`,
+    },
+
+    // ──────────────────────────────────────────
+    //  UI — 화면 전환 및 공통 렌더
+    // ──────────────────────────────────────────
+    UI: {
+
+        /** 화면 전환 */
+        showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            const target = document.getElementById('screen-' + id);
+            if (target) target.classList.add('active');
+            APP.state.currentScreen = id;
+            APP.UI.renderHeader(id);
+            // 화면별 진입 훅 (STEP 4~7에서 구현)
+            if (id === 'home')       APP.UI.renderHome();
+            if (id === 'search')     APP.Search.render();
+            if (id === 'checklist')  APP.Checklist.render();
+            if (id === 'export')     APP.Export.render();
+        },
+
+        /** 헤더 렌더 */
+        renderHeader(screenId) {
+            const header = document.getElementById('appHeader');
+            const titles = {
+                home:       null,           // 홈은 로고
+                search:     '세대 조회',
+                checklist:  '체크리스트',
+                export:     '결과 내보내기',
+            };
+            if (screenId === 'home') {
+                const siteName = APP.state.mobileData?.siteName || '';
+                header.innerHTML = `
+                    <div class="header-logo">
+                        <span class="logo-main">Unimap Mobile</span>
+                        <span class="logo-sub">${siteName || 'STATION COMPANION'}</span>
+                    </div>
+                    <button class="header-action" onclick="APP.UI.openLoadSheet()" title="데이터 불러오기">📂</button>
+                `;
+            } else {
+                header.innerHTML = `
+                    <button class="header-back" onclick="APP.UI.back()">‹</button>
+                    <span class="header-title">${titles[screenId] || ''}</span>
+                `;
+            }
+        },
+
+        /** 뒤로가기 */
+        back() {
+            const prev = {
+                search:     'home',
+                checklist:  'search',
+                export:     'home',
+            };
+            const dest = prev[APP.state.currentScreen] || 'home';
+            APP.UI.showScreen(dest);
+        },
+
+        /** 홈 화면 상태 분기 렌더 */
+        renderHome() {
+            const hasData = !!APP.state.mobileData;
+            document.getElementById('homeNoData').style.display   = hasData ? 'none'  : 'block';
+            document.getElementById('homeWithData').style.display = hasData ? 'block' : 'none';
+            if (hasData) APP.UI.updateHomeSummary();
+        },
+
+        /** 홈 요약 카드 갱신 (STEP 3에서 완전 구현) */
+        updateHomeSummary() {
+            const data = APP.state.mobileData;
+            if (!data) return;
+            document.getElementById('homeSiteName').textContent = data.siteName || '현장';
+            const lastSaved = localStorage.getItem(APP.LS.LAST_SAVED);
+            document.getElementById('homeSaveInfo').textContent =
+                lastSaved ? `마지막 저장: ${APP.Util.formatTime(lastSaved)}` : '저장 정보 없음';
+
+            // contractByUnit 기준 집계 (옵션 없는 세대 제외)
+            const contractUnits = Object.keys(data.contractByUnit || {});
+            const total = contractUnits.length;
+            let done = 0;
+            contractUnits.forEach(uk => {
+                const opts = data.contractByUnit[uk] || [];
+                const cl   = APP.Data.loadChecklist(uk);
+                if (cl && opts.length > 0 && cl.items.every(i => i.checked)) done++;
+            });
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statDone').textContent  = done;
+            document.getElementById('statPend').textContent  = total - done;
+
+            // 미옵션 세대 수 계산 및 문구 표시
+            const allUnits  = APP.Util.generateAllUnits();
+            const noOptsCnt = allUnits.length - total;
+            const missingEl = document.getElementById('homeMissingOpts');
+            if (noOptsCnt > 0) {
+                missingEl.textContent  = `미옵션 ${noOptsCnt}세대 제외`;
+                missingEl.style.display = 'block';
+            } else {
+                missingEl.style.display = 'none';
+            }
+        },
+
+        /** 데이터 불러오기 시트 열기/닫기 */
+        openLoadSheet() {
+            document.getElementById('loadOverlay').classList.add('open');
+        },
+        closeLoadSheet(e) {
+            if (!e || e.target === document.getElementById('loadOverlay')) {
+                document.getElementById('loadOverlay').classList.remove('open');
+                document.getElementById('mobileJsonInput').value = '';
+            }
+        },
+        closeMergeOverlay() {
+            document.getElementById('mergeOverlay').classList.remove('open');
+            APP.state.pendingJsonData = null;
+        },
+    },
+
+    // ──────────────────────────────────────────
+    //  Data — mobile.json 로드 / localStorage
+    // ──────────────────────────────────────────
+    Data: {
+
+        /** mobile.json 파일 input 처리 */
+        loadMobileJson(input) {
+            const file = input.files?.[0];
+            if (!file) return;
+            APP.UI.closeLoadSheet();
+            input.value = '';  // ③ 같은 파일 재선택 가능하도록 초기화
+            const reader = new FileReader();
+            reader.onload = e => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (!data.version || !data.buildings || !data.contractByUnit) {  // ① 검증 강화
+                        APP.UI.showToast('올바른 mobile.json 형식이 아닙니다.');
+                        return;
+                    }
+                    APP.state.pendingJsonData = data;
+                    // 기존 체크 데이터 존재 여부 확인
+                    const existingMeta = localStorage.getItem(APP.LS.META);
+                    if (existingMeta) {
+                        document.getElementById('mergeOverlay').classList.add('open');
+                    } else {
+                        APP.Data.confirmLoad('reset');
+                    }
+                } catch (err) {
+                    APP.UI.showToast('JSON 파싱 오류: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+        },
+
+        /** 병합/초기화 선택 후 실제 저장 */
+        confirmLoad(mode) {
+            document.getElementById('mergeOverlay').classList.remove('open');
+            const data = APP.state.pendingJsonData;
+            if (!data) return;
+
+            if (mode === 'reset') {
+                // 기존 체크 데이터 전체 삭제
+                Object.keys(localStorage)
+                    .filter(k => k.startsWith('unimap_checklist_'))
+                    .forEach(k => localStorage.removeItem(k));
+                localStorage.removeItem(APP.LS.LAST_SAVED);
+                localStorage.removeItem(APP.LS.META);  // ② reset 후 병합 다이얼로그 오판 방지
+            }
+            // 'keep' 모드: 기존 체크 유지, 새 unitKey만 추가 (저장된 데이터 건드리지 않음)
+
+            // mobile.json 원본 저장
+            localStorage.setItem(APP.LS.MOBILE_DATA, JSON.stringify(data));
+
+            // meta 저장
+            const allUnits = Object.keys(data.contractByUnit || {});
+            localStorage.setItem(APP.LS.META, JSON.stringify({
+                siteName:   data.siteName || '',
+                exportedAt: data.exportedAt || '',
+                totalUnits: allUnits.length,
+            }));
+
+            APP.state.mobileData    = data;
+            APP.state.pendingJsonData = null;
+            APP.UI.showScreen('home');
+            APP.UI.showToast('✅ 데이터를 불러왔습니다.');
+        },
+
+        /** 앱 시작 시 localStorage 복원 */
+        restore() {
+            const raw = localStorage.getItem(APP.LS.MOBILE_DATA);
+            if (raw) {
+                try { APP.state.mobileData = JSON.parse(raw); } catch {}
+            }
+        },
+
+        /** 세대 체크리스트 localStorage 저장 */
+        saveChecklist(unitKey, items) {
+            const payload = {
+                items,
+                savedAt: new Date().toISOString(),
+            };
+            localStorage.setItem(APP.LS.CHECKLIST(unitKey), JSON.stringify(payload));
+            localStorage.setItem(APP.LS.LAST_SAVED, new Date().toISOString());
+        },
+
+        /** 세대 체크리스트 localStorage 로드 */
+        loadChecklist(unitKey) {
+            const raw = localStorage.getItem(APP.LS.CHECKLIST(unitKey));
+            if (!raw) return null;
+            try { return JSON.parse(raw); } catch { return null; }
+        },
+    },
+
+    // ──────────────────────────────────────────
+    //  Search — 세대 조회 화면 (STEP 5에서 완전 구현)
+    // ──────────────────────────────────────────
+    Search: {
+        render() {
+            this.renderChips();
+            this.renderList();
+        },
+
+        renderChips() {
+            const data = APP.state.mobileData;
+            const dongs = data ? [...new Set(
+                Object.keys(data.contractByUnit).map(k => k.split('-')[0])
+            )].sort() : [];
+
+            const chips = [
+                { id: 'all',     label: '전체' },
+                { id: 'done',    label: '✅ 완료' },
+                { id: 'pending', label: '⬜ 미완료' },
+                ...dongs.map(d => ({ id: 'dong_' + d, label: d + '동' })),
+            ];
+            const wrap = document.getElementById('filterChips');
+            wrap.innerHTML = chips.map(c => `
+                <button class="chip ${APP.state.filterChip === c.id ? 'active' : ''}"
+                    onclick="APP.Search.setChip('${c.id}')">${c.label}</button>
+            `).join('');
+        },
+
+        setChip(id) {
+            APP.state.filterChip = id;
+            this.renderChips();
+            this.renderList();
+        },
+
+        filter() { this.renderList(); },
+
+        renderList() {
+            const data = APP.state.mobileData;
+            const listEl = document.getElementById('unitList');
+            if (!data) {
+                listEl.innerHTML = `<div class="empty-state">
+                    <div class="empty-icon">📂</div>
+                    <div class="empty-title">데이터 없음</div>
+                    <div class="empty-desc">홈 화면에서 mobile.json을 먼저 불러오세요.</div>
+                </div>`;
+                return;
+            }
+            const q = (document.getElementById('searchInput')?.value || '').trim();
+            const chip = APP.state.filterChip;
+
+            // ② buildings 기반 전체 unitKey 목록 — 옵션 없는 세대 포함
+            let units = APP.Util.generateAllUnits().map(u => {
+                const opts = data.contractByUnit[u.unitKey] || [];
+                const cl   = APP.Data.loadChecklist(u.unitKey);
+                const total = opts.length;
+                const done  = cl ? cl.items.filter(i => i.checked).length : 0;
+                // 옵션 없는 세대는 완료로 간주
+                const isComplete = total === 0 || (total > 0 && done === total);
+                const noOpts = total === 0;
+                return { ...u, total, done, isComplete, noOpts };
+            });
+
+            // ③ 검색 필터
+            if (q) {
+                units = units.filter(u =>
+                    u.dong.includes(q) || u.ho.includes(q)
+                );
+            }
+            // 칩 필터
+            if (chip === 'done')    units = units.filter(u => u.isComplete);
+            if (chip === 'pending') units = units.filter(u => !u.isComplete);
+            if (chip.startsWith('dong_')) {
+                const d = chip.replace('dong_', '');
+                units = units.filter(u => u.dong === d);
+            }
+
+            // ② 정렬: 동 오름차순 → 층 내림차순 → 라인 오름차순
+            units.sort((a, b) => {
+                if (a.dong !== b.dong) return a.dong.localeCompare(b.dong);
+                if (a.floor !== b.floor) return b.floor - a.floor;
+                return a.line.localeCompare(b.line);
+            });
+
+            if (units.length === 0) {
+                listEl.innerHTML = `<div class="empty-state">
+                    <div class="empty-icon">🔍</div>
+                    <div class="empty-title">검색 결과 없음</div>
+                    <div class="empty-desc">다른 조건으로 검색해보세요.</div>
+                </div>`;
+                return;
+            }
+
+            listEl.innerHTML = units.map(u => {
+                const pct  = u.total > 0 ? Math.round(u.done / u.total * 100) : 100;
+                const cls  = u.isComplete ? 'is-done' : 'is-pending';
+                const badge = u.noOpts
+                    ? `<span class="badge badge-accent" style="font-size:10px;">옵션없음</span>`
+                    : u.isComplete
+                        ? `<span class="badge badge-done" style="font-size:10px;">✅ 완료</span>`
+                        : `<span class="badge badge-pending" style="font-size:10px;">${u.done}/${u.total}</span>`;
+                return `
+                <button class="unit-card ${cls}" onclick="APP.UI.enterChecklist('${u.unitKey}')">
+                    <div class="uc-info">
+                        <div class="uc-dong-ho">${u.dong}동 ${u.ho}호</div>
+                        <div class="uc-type">${APP.Util.getUnitType(u.unitKey)} &nbsp;${badge}</div>
+                    </div>
+                    <div class="uc-progress">
+                        <div class="uc-prog-num">${u.noOpts ? '—' : `${u.done}/${u.total}`}</div>
+                        <div class="uc-prog-bar-wrap">
+                            <div class="uc-prog-bar" style="width:${pct}%"></div>
+                        </div>
+                    </div>
+                </button>`;
+            }).join('');
+        },
+    },
+
+    // ──────────────────────────────────────────
+    //  Checklist — 체크리스트 화면 (STEP 6에서 완전 구현)
+    // ──────────────────────────────────────────
+    Checklist: {
+
+        render() {
+            const unitKey = APP.state.currentUnitKey;
+            if (!unitKey || !APP.state.mobileData) return;
+            const data  = APP.state.mobileData;
+            const dong  = unitKey.split('-')[0];
+            const ho    = unitKey.split('-')[1] || '';  // ⑥ "1203" 그대로 사용
+            const opts  = data.contractByUnit[unitKey] || [];
+            const mgr   = data.dongManagers?.[dong] || {};
+            const type  = APP.Util.getUnitType(unitKey);
+
+            document.getElementById('clDongHo').textContent = `${dong}동 ${ho}호`;
+            document.getElementById('clType').textContent   = type;
+            document.getElementById('clManager').textContent =
+                mgr.manager ? `담당자: ${mgr.manager}` + (mgr.contact ? `  ${mgr.contact}` : '') : '';
+
+            // ③ 항상 name 매칭 방식 — 옵션 수 변경 시에도 기존 체크 유지
+            const cl = APP.Data.loadChecklist(unitKey);
+            const items = opts.map(name => {
+                const saved   = cl?.items.find(i => i.name === name);
+                const descObj = (data.optionDescriptions || []).find(d => d.optionName === name);
+                return {
+                    name,
+                    desc:      descObj?.description || '',
+                    checked:   saved?.checked   || false,
+                    note:      saved?.note       || '',
+                    checkedAt: saved?.checkedAt  || null,
+                };
+            });
+
+            this._items = items;
+            this.renderItems();
+            this.updateProgress();
+        },
+
+        renderItems() {
+            const items = this._items || [];
+            const el = document.getElementById('clItems');
+            el.innerHTML = items.map((item, idx) => {
+                const hasMemo = !!item.note;
+                return `
+                <div class="cl-item ${item.checked ? 'is-checked' : ''}" id="clItem_${idx}">
+                    <div class="cl-item-row" onclick="APP.Checklist.toggle(${idx})">
+                        <div class="cl-checkbox">${item.checked ? '✓' : ''}</div>
+                        <div style="flex:1;">
+                            <div class="cl-item-name">${item.name}</div>
+                            ${item.desc ? `<div class="cl-item-desc">${item.desc.split(',').map(s=>s.trim()).join(' | ')}</div>` : ''}
+                        </div>
+                        <button class="cl-memo-btn ${hasMemo ? 'has-memo' : ''}"
+                            onclick="event.stopPropagation(); APP.Checklist.toggleMemo(${idx})"
+                            title="메모">💬</button>
+                    </div>
+                    <div class="cl-memo-area" id="memoArea_${idx}">
+                        <textarea class="cl-memo-input" rows="2"
+                            placeholder="메모 입력..."
+                            oninput="APP.Checklist.saveMemo(${idx}, this.value)"
+                        >${item.note || ''}</textarea>
+                    </div>
+                </div>`;
+            }).join('');
+        },
+
+        toggle(idx) {
+            const item = this._items[idx];
+            item.checked   = !item.checked;
+            item.checkedAt = item.checked ? new Date().toISOString() : null;
+            this.saveAndRefreshItem(idx);
+            this.updateProgress();
+        },
+
+        toggleMemo(idx) {
+            const area = document.getElementById(`memoArea_${idx}`);
+            area.classList.toggle('open');
+            if (area.classList.contains('open')) area.querySelector('textarea').focus();
+        },
+
+        saveMemo(idx, val) {
+            this._items[idx].note = val;
+            const btn = document.querySelector(`#clItem_${idx} .cl-memo-btn`);
+            if (btn) {
+                btn.classList.toggle('has-memo', !!val);
+            }
+            APP.Data.saveChecklist(APP.state.currentUnitKey, this._items);
+        },
+
+        saveAndRefreshItem(idx) {
+            APP.Data.saveChecklist(APP.state.currentUnitKey, this._items);
+            const item  = this._items[idx];
+            const el    = document.getElementById(`clItem_${idx}`);
+            if (!el) return;
+            el.classList.toggle('is-checked', item.checked);
+            el.querySelector('.cl-checkbox').textContent = item.checked ? '✓' : '';
+            const nameEl = el.querySelector('.cl-item-name');
+            if (nameEl) {
+                nameEl.style.textDecoration = item.checked ? 'line-through' : '';
+                nameEl.style.color = item.checked ? 'var(--text-sub)' : '';
+            }
+        },
+
+        updateProgress() {
+            const items  = this._items || [];
+            const total  = items.length;
+            const done   = items.filter(i => i.checked).length;
+            const pct    = total > 0 ? Math.round(done / total * 100) : 0;
+            document.getElementById('clProgText').textContent = `${done} / ${total} 완료`;
+            document.getElementById('clProgPct').textContent  = `${pct}%`;
+            document.getElementById('clProgBar').style.width  = pct + '%';
+        },
+
+        resetUnit() {
+            if (!confirm('이 세대의 체크 데이터를 초기화할까요?')) return;
+            const unitKey = APP.state.currentUnitKey;
+            localStorage.removeItem(APP.LS.CHECKLIST(unitKey));
+            this._items = this._items.map(i => ({ ...i, checked: false, note: '', checkedAt: null }));
+            this.renderItems();
+            this.updateProgress();
+            APP.UI.showToast('초기화 완료');
+        },
+
+        copyKakaoText() {
+            const unitKey = APP.state.currentUnitKey;
+            const data    = APP.state.mobileData;
+            if (!unitKey || !data) return;
+            const dong    = unitKey.split('-')[0];
+            const ho      = unitKey.split('-')[1] || '';  // ⑥ "1203" 그대로 사용
+            const type    = APP.Util.getUnitType(unitKey);
+            const mgr     = data.dongManagers?.[dong];
+            const items   = this._items || [];
+            const done    = items.filter(i => i.checked).length;
+            const total   = items.length;
+            const pct     = total > 0 ? Math.round(done / total * 100) : 0;
+            const now     = APP.Util.formatTime(new Date().toISOString());
+
+            let text = `[옵션 설치 체크리스트]\n${dong}동 ${ho}호 (${type})`;
+            if (mgr?.manager) text += `\n담당자: ${mgr.manager}`;
+            text += '\n\n';
+            items.forEach(i => {
+                const check = i.checked ? '✅' : '⬜';
+                const note  = i.note ? ` — ${i.note}` : '';
+                text += `${check} ${i.name}${note}\n`;
+            });
+            text += `\n완료 ${done}/${total} (${pct}%)\nUnimap Mobile · ${now}`;
+
+            if (navigator.clipboard?.writeText) {
+                navigator.clipboard.writeText(text).then(() => APP.UI.showToast('📋 복사 완료'));
+            } else {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                APP.UI.showToast('📋 복사 완료');
+            }
+        },
+    },
+
+    // ──────────────────────────────────────────
+    //  Export — 내보내기 화면 (STEP 7에서 완전 구현)
+    // ──────────────────────────────────────────
+    Export: {
+
+        render() {
+            const data = APP.state.mobileData;
+            if (!data) {
+                ['expTotal','expDone','expPend'].forEach(id => {
+                    document.getElementById(id).textContent = '-';
+                });
+                return;
+            }
+            const contractUnits = Object.keys(data.contractByUnit || {});
+            let done = 0;
+            contractUnits.forEach(uk => {
+                const opts = data.contractByUnit[uk] || [];
+                const cl   = APP.Data.loadChecklist(uk);
+                if (cl && opts.length > 0 && cl.items.every(i => i.checked)) done++;
+            });
+            document.getElementById('expTotal').textContent = contractUnits.length;
+            document.getElementById('expDone').textContent  = done;
+            document.getElementById('expPend').textContent  = contractUnits.length - done;
+        },
+
+        exportResult(incompleteOnly) {
+            const data = APP.state.mobileData;
+            if (!data) { APP.UI.showToast('데이터를 먼저 불러오세요.'); return; }
+
+            const allUnitList = APP.Util.generateAllUnits();
+            const checklist = [];
+            let totalDone = 0;
+
+            allUnitList.forEach(u => {
+                const { unitKey, dong, ho, line } = u;
+                const cl   = APP.Data.loadChecklist(unitKey);
+                const opts = data.contractByUnit[unitKey] || [];
+                const type = APP.Util.getUnitType(unitKey);
+
+                const items = opts.map(name => {
+                    const saved = cl?.items.find(i => i.name === name);
+                    return {
+                        name,
+                        checked:   saved?.checked   || false,
+                        note:      saved?.note       || '',
+                        checkedAt: saved?.checkedAt  || null,
+                    };
+                });
+
+                const doneCount  = items.filter(i => i.checked).length;
+                const isComplete = opts.length === 0 || (opts.length > 0 && doneCount === opts.length);
+                if (isComplete) totalDone++;
+                if (incompleteOnly && isComplete) return;
+
+                const lastCheck = items
+                    .filter(i => i.checkedAt)
+                    .map(i => i.checkedAt)
+                    .sort().pop() || null;
+
+                checklist.push({
+                    unitKey, dong, ho, type,
+                    completedAt: isComplete ? lastCheck : null,
+                    items,
+                });
+            });
+
+            const ua = navigator.userAgent;
+            const deviceInfo = ua.includes('iPhone') ? 'iPhone / Safari'
+                : ua.includes('Android') ? 'Android / Chrome'
+                : 'PC / Browser';
+
+            const now = new Date();
+            const ts  = now.toISOString().slice(0, 16)
+                .replace('T', '_')
+                .replace(/-/g, '')   // ② 전체 '-' 제거
+                .replace(':', '');   // HH:MM → HHMM
+
+            const payload = {
+                version:    '1.0',
+                exportedAt: now.toISOString(),
+                deviceInfo,
+                siteName:   data.siteName || '',
+                summary: {
+                    totalUnits:     allUnitList.length,
+                    checkedUnits:   totalDone,
+                    uncheckedUnits: allUnitList.length - totalDone,
+                },
+                checklist,
+            };
+
+            const filename = incompleteOnly
+                ? `result_incomplete_${ts}.json`
+                : `result_${ts}.json`;
+
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+            const file = new File([blob], filename, { type: 'application/json' });
+
+            if (navigator.share && navigator.canShare?.({ files: [file] })) {
+                navigator.share({ files: [file], title: filename })
+                    .catch(() => this._fallbackDownload(blob, filename));
+            } else {
+                this._fallbackDownload(blob, filename);
+            }
+        },
+
+        _fallbackDownload(blob, filename) {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(a.href);
+            APP.UI.showToast('📥 파일 저장 완료');
+        },
+    },
+
+    // ──────────────────────────────────────────
+    //  Util — 공통 유틸
+    // ──────────────────────────────────────────
+    Util: {
+
+        /** buildings 기반 전체 unitKey 목록 생성 (voidsText 결번 제외) */
+        /** Station parseVoidsText와 동일 로직 */
+        _parseVoidsText(text) {
+            const voids = new Set();
+            for (let tok of (text || '').replace(/\r?\n/g, ',').split(',')) {
+                tok = tok.trim().replace(/\s/g, '');
+                let f = null, l = null;
+                if (tok.includes('-')) [f, l] = tok.split('-').map(Number);
+                else if (tok.includes('.')) [f, l] = tok.split('.').map(Number);
+                if (Number.isFinite(f) && Number.isFinite(l)) voids.add(`${f}-${l}`);
+            }
+            return voids;
+        },
+
+        /** Station parseStacksText + buildAllowedSet와 동일 로직 */
+        _buildAllowedSet(bldg) {
+            const lineAllowedFloors = new Map();
+            const stackLines = (bldg.stacksText || '').split(/\r?\n/).filter(Boolean);
+            for (const line of stackLines) {
+                const parts = line.split(':');
+                if (parts.length !== 2) continue;
+                const parseRange = s => {
+                    s = s.trim();
+                    if (s.includes('-')) { const [a, b] = s.split('-').map(Number); return [a, b]; }
+                    const n = Number(s); return [n, n];
+                };
+                const [ff, ft] = parseRange(parts[0]);  // floorFrom - floorTo
+                const [lf, lt] = parseRange(parts[1]);  // lineFrom  - lineTo
+                for (let l = Math.max(1, lf); l <= Math.min(bldg.unitsPerFloor, lt); l++) {
+                    if (!lineAllowedFloors.has(l)) lineAllowedFloors.set(l, new Set());
+                    for (let f = Math.max(1, ff); f <= Math.min(bldg.floors, ft); f++) {
+                        lineAllowedFloors.get(l).add(f);
+                    }
+                }
+            }
+            const allowed = new Set();
+            for (let l = 1; l <= bldg.unitsPerFloor; l++) {
+                const hasRule = lineAllowedFloors.has(l);
+                for (let f = 1; f <= bldg.floors; f++) {
+                    if (!hasRule || lineAllowedFloors.get(l).has(f)) allowed.add(`${f}-${l}`);
+                }
+            }
+            for (const k of this._parseVoidsText(bldg.voidsText)) allowed.delete(k);
+            return allowed;
+        },
+
+        /** buildings 기반 전체 unitKey 목록 생성 (Station 418세대와 일치) */
+        generateAllUnits() {
+            const data = APP.state.mobileData;
+            if (!data) return [];
+            const units = [];
+            (data.buildings || []).forEach(bldg => {
+                const allowed = this._buildAllowedSet(bldg);
+                const startUnit = bldg.startUnit ?? 1;
+                // 정렬: 층 내림차순 → 라인 오름차순
+                const sorted = [...allowed].sort((a, b) => {
+                    const [fa, la] = a.split('-').map(Number);
+                    const [fb, lb] = b.split('-').map(Number);
+                    if (fa !== fb) return fb - fa;
+                    return la - lb;
+                });
+                for (const key of sorted) {
+                    const [floor, lineNo] = key.split('-').map(Number);
+                    const unitNo  = startUnit + lineNo - 1;
+                    const unitHo  = floor * 100 + unitNo;
+                    const unitKey = `${bldg.name}-${unitHo}`;
+                    const ho      = String(unitHo);
+                    const line    = String(lineNo).padStart(2, '0');
+                    units.push({ unitKey, dong: bldg.name, ho, floor, line });
+                }
+            });
+            return units;
+        },
+
+        /** unitKey에서 타입 반환 */
+        getUnitType(unitKey) {
+            const data = APP.state.mobileData;
+            if (!data) return '';
+            const dong = unitKey.split('-')[0];
+            const ho   = unitKey.split('-')[1] || '';
+            const bldg = (data.buildings || []).find(b => b.name === dong);
+            if (!bldg) return '';
+            const hoNum     = parseInt(ho) || 0;
+            const startUnit = bldg.startUnit ?? 1;
+            const lineIdx   = (hoNum % 100) - startUnit;
+            const types     = bldg.unitTypes || [];
+            return types[lineIdx] || '';
+        },
+
+        /** ISO 시각 → 표시용 포맷 */
+        formatTime(iso) {
+            if (!iso) return '';
+            const d = new Date(iso);
+            if (isNaN(d)) return iso;
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            const hh = String(d.getHours()).padStart(2, '0');
+            const mi = String(d.getMinutes()).padStart(2, '0');
+            return `${mm}-${dd} ${hh}:${mi}`;
+        },
+    },
+
+    // ──────────────────────────────────────────
+    //  공통 UI 유틸
+    // ──────────────────────────────────────────
+    UI_toast: null,
+
+};
+
+// ──────────────────────────────────────────
+//  PWA — Service Worker 등록 + 홈 화면 추가 안내
+// ──────────────────────────────────────────
+APP.PWA = {
+    _deferredPrompt: null,  // Android 설치 프롬프트 저장
+
+    init() {
+        // Service Worker 등록
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js').then(reg => {
+                // 업데이트 감지
+                reg.addEventListener('updatefound', () => {
+                    const newSW = reg.installing;
+                    newSW.addEventListener('statechange', () => {
+                        if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+                            document.getElementById('swUpdateBar').classList.add('show');
+                        }
+                    });
+                });
+            }).catch(err => console.warn('[PWA] SW 등록 실패:', err));
+        }
+
+        // Android: beforeinstallprompt 이벤트 캐치
+        window.addEventListener('beforeinstallprompt', e => {
+            e.preventDefault();
+            this._deferredPrompt = e;
+            this.showBanner('android');
+        });
+
+        // 이미 설치된 경우 배너 숨김
+        window.addEventListener('appinstalled', () => {
+            this.dismissBanner();
+            localStorage.setItem('unimap_pwa_installed', '1');
+        });
+
+        // iOS: standalone 미실행 + Safari + 미표시 이력 없으면 배너
+        const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+        const isStandalone = window.navigator.standalone === true;
+        const dismissed = localStorage.getItem('unimap_pwa_banner_dismissed');
+        const installed = localStorage.getItem('unimap_pwa_installed');
+        if (isIOS && !isStandalone && !dismissed && !installed) {
+            this.showBanner('ios');
+        }
+    },
+
+    showBanner(platform) {
+        const desc = document.getElementById('pwaInstallDesc');
+        const btn  = document.getElementById('pwaInstallBtn');
+        if (platform === 'ios') {
+            desc.textContent = 'Safari 하단 공유 버튼(□↑)을 탭한 후 "홈 화면에 추가"를 선택하세요.';
+            btn.textContent  = '안내 확인';
+            btn.onclick = () => this.dismissBanner();
+        } else {
+            desc.textContent = '브라우저 메뉴에서 "앱 설치" 또는 "홈 화면에 추가"를 선택하세요.';
+            btn.textContent  = '설치하기';
+            btn.onclick = () => this.triggerInstall();
+        }
+        document.getElementById('pwaInstallBanner').classList.add('show');
+    },
+
+    triggerInstall() {
+        if (!this._deferredPrompt) return;
+        this._deferredPrompt.prompt();
+        this._deferredPrompt.userChoice.then(result => {
+            if (result.outcome === 'accepted') {
+                localStorage.setItem('unimap_pwa_installed', '1');
+            }
+            this._deferredPrompt = null;
+            this.dismissBanner();
+        });
+    },
+
+    dismissBanner() {
+        document.getElementById('pwaInstallBanner').classList.remove('show');
+        localStorage.setItem('unimap_pwa_banner_dismissed', '1');
+    },
+};
+
+// enterChecklist는 UI 네임스페이스 외부에서도 참조하므로 별도 설정
+APP.UI.enterChecklist = function(unitKey) {
+    APP.state.currentUnitKey = unitKey;
+    APP.UI.showScreen('checklist');
+};
+
+// showToast도 UI에 포함
+APP.UI.showToast = function(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(APP.UI_toast);
+    APP.UI_toast = setTimeout(() => el.classList.remove('show'), 2200);
+};
+
+// ── 앱 초기화 ──
+(function init() {
+    // localStorage 복원
+    APP.Data.restore();
+    // 초기 화면 렌더
+    APP.UI.renderHeader('home');
+    APP.UI.renderHome();
+    // 뒤로가기 제스처 (Android)
+    window.addEventListener('popstate', () => APP.UI.back());
+    // PWA 초기화
+    APP.PWA.init();
+})();
+</script>
+</body>
+</html>
