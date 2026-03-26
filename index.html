@@ -871,8 +871,6 @@
         <!-- 데이터 있을 때 -->
         <div id="homeWithData" style="display:none;">
             <div class="home-top">
-                <div class="home-site-name" id="homeSiteName">○○아파트</div>
-                <div class="home-greeting">안녕하세요 👋</div>
                 <div class="home-save-info" id="homeSaveInfo">저장 정보 없음</div>
             </div>
 
@@ -1171,7 +1169,6 @@ const APP = {
         updateHomeSummary() {
             const data = APP.state.mobileData;
             if (!data) return;
-            document.getElementById('homeSiteName').textContent = data.siteName || '현장';
             const lastSaved = localStorage.getItem(APP.LS.LAST_SAVED);
             document.getElementById('homeSaveInfo').textContent =
                 lastSaved ? `마지막 저장: ${APP.Util.formatTime(lastSaved)}` : '저장 정보 없음';
