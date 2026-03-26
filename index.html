@@ -1086,6 +1086,7 @@ const APP = {
         pendingJsonData: null,   // 병합 다이얼로그 대기 중 데이터
         filterChip: 'all',       // 조회 화면 필터 (all / done / pending)
         filterDong: '',          // 동 필터
+        _isBack: false,          // back() 호출 시 pushState 건너뜀 플래그
     },
 
     // ── localStorage 키 상수 ──
@@ -1108,8 +1109,11 @@ const APP = {
             if (target) target.classList.add('active');
             APP.state.currentScreen = id;
             APP.UI.renderHeader(id);
-            // 물리 뒤로가기 대응: 화면 전환마다 스택에 쌓기
-            history.pushState({ screen: id }, '', '');
+            // back() 호출 시에는 pushState 건너뜀 (스택 중복 방지)
+            if (!APP.state._isBack) {
+                history.pushState({ screen: id }, '', '');
+            }
+            APP.state._isBack = false;
             // 화면별 진입 훅
             if (id === 'home')       APP.UI.renderHome();
             if (id === 'search')     APP.Search.render();
@@ -1157,6 +1161,7 @@ const APP = {
                 export:     'home',
             };
             const dest = prev[APP.state.currentScreen] || 'home';
+            APP.state._isBack = true;
             APP.UI.showScreen(dest);
         },
 
