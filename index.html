@@ -1684,8 +1684,8 @@ const APP = {
             };
 
             const filename = incompleteOnly
-                ? `result_incomplete_${ts}.json`
-                : `result_${ts}.json`;
+                ? `result_incomplete_${ts}.txt`
+                : `result_${ts}.txt`;
 
             const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
             const file = new File([blob], filename, { type: 'application/json' });
