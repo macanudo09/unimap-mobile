@@ -1113,7 +1113,9 @@ const APP = {
             if (target) target.classList.add('active');
             APP.state.currentScreen = id;
             APP.UI.renderHeader(id);
-            // 화면별 진입 훅 (STEP 4~7에서 구현)
+            // 물리 뒤로가기 대응: 화면 전환마다 스택에 쌓기
+            history.pushState({ screen: id }, '', '');
+            // 화면별 진입 훅
             if (id === 'home')       APP.UI.renderHome();
             if (id === 'search')     APP.Search.render();
             if (id === 'checklist')  APP.Checklist.render();
@@ -1912,11 +1914,23 @@ APP.UI.showToast = function(msg) {
 (function init() {
     // localStorage 복원
     APP.Data.restore();
+    // 초기 홈 스택 2개 쌓기 (홈에서 뒤로가기 시 앱 종료 방지)
+    history.replaceState({ screen: 'home' }, '', '');
+    history.pushState({ screen: 'home' }, '', '');
     // 초기 화면 렌더
     APP.UI.renderHeader('home');
     APP.UI.renderHome();
-    // 뒤로가기 제스처 (Android)
-    window.addEventListener('popstate', () => APP.UI.back());
+    // 물리 뒤로가기 처리
+    window.addEventListener('popstate', e => {
+        const screen = e.state?.screen;
+        if (screen && screen !== 'home') {
+            // 하위 화면 → 상위로
+            APP.UI.back();
+        } else {
+            // 홈이거나 스택 없음 → 스택 재주입해서 앱 유지
+            history.pushState({ screen: 'home' }, '', '');
+        }
+    });
     // PWA 초기화
     APP.PWA.init();
 })();
